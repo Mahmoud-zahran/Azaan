@@ -27,7 +27,7 @@ import com.example.azaan.core.notification.AlarmScheduler
 import com.example.azaan.core.notification.KeepAliveService
 import com.example.azaan.core.notification.PrayerNotificationWorker
 import com.example.azaan.feature_prayer.data.local.PrayerCalculator
-import com.example.azaan.feature_prayer.presentation.screen.PrayerScreen
+import com.example.azaan.navigation.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PrayerScreen()
+                    AppNavigation()
                 }
             }
         }
