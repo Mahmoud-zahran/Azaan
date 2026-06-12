@@ -2,10 +2,8 @@ package com.example.azaan.core.location
 
 import android.Manifest
 import android.app.Application
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -18,22 +16,14 @@ class DefaultLocationTracker @Inject constructor(
 ) : LocationTracker {
 
     override suspend fun getCurrentLocation(): Location? {
-        val hasAccessFineLocationPermission = ContextCompat.checkSelfPermission(
-            application,
-            Manifest.permission.ACCESS_FINE_LOCATION
+        val hasFine = ContextCompat.checkSelfPermission(
+            application, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        val hasAccessCoarseLocationPermission = ContextCompat.checkSelfPermission(
-            application,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+        val hasCoarse = ContextCompat.checkSelfPermission(
+            application, Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        val locationManager = application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-
-        if (!hasAccessCoarseLocationPermission || !hasAccessFineLocationPermission || !isGpsEnabled) {
-            return null
-        }
+        if (!hasFine && !hasCoarse) return null
 
         return suspendCancellableCoroutine { continuation ->
             locationClient.lastLocation.addOnCompleteListener { task ->

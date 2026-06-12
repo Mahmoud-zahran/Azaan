@@ -6,7 +6,6 @@ import com.batoulapps.adhan.Madhab
 import com.batoulapps.adhan.PrayerTimes
 import com.batoulapps.adhan.data.DateComponents
 import java.util.Date
-import java.util.Calendar
 
 class PrayerCalculator {
 
@@ -16,10 +15,15 @@ class PrayerCalculator {
         val params = CalculationMethod.EGYPTIAN.getParameters()
         params.madhab = Madhab.SHAFI
 
-        return PrayerTimes(
+        val times = PrayerTimes(
             coordinates,
             date,
             params
         )
+
+//        times.maghrib.time = System.currentTimeMillis() + 20_000
+//        times.isha.time = System.currentTimeMillis() + 40_000
+
+        return times
     }
 }

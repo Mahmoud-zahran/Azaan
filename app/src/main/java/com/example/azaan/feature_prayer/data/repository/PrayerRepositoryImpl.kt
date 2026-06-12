@@ -6,6 +6,7 @@ import com.example.azaan.feature_prayer.domain.repository.PrayerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 class PrayerRepositoryImpl(
@@ -27,7 +28,10 @@ class PrayerRepositoryImpl(
             Prayer("Sunrise", timeFormatter.format(times.sunrise), next == com.batoulapps.adhan.Prayer.SUNRISE),
             Prayer("Dhuhr", timeFormatter.format(times.dhuhr), next == com.batoulapps.adhan.Prayer.DHUHR),
             Prayer("Asr", timeFormatter.format(times.asr), next == com.batoulapps.adhan.Prayer.ASR),
-            Prayer("Maghrib", timeFormatter.format(times.maghrib), next == com.batoulapps.adhan.Prayer.MAGHRIB),
+            Prayer("Maghrib", timeFormatter.format(
+                times.maghrib
+//                Calendar.getInstance().apply { add(Calendar.MINUTE, 1   ) }.time
+            ), next == com.batoulapps.adhan.Prayer.MAGHRIB),
             Prayer("Isha", timeFormatter.format(times.isha), next == com.batoulapps.adhan.Prayer.ISHA)
         )
 

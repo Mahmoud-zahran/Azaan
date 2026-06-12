@@ -1,9 +1,6 @@
 package com.example.azaan.core.notification
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -11,7 +8,7 @@ import com.example.azaan.core.location.LocationTracker
 import com.example.azaan.feature_prayer.data.local.PrayerCalculator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.util.*
+import kotlinx.coroutines.withTimeout
 
 @HiltWorker
 class PrayerNotificationWorker @AssistedInject constructor(
@@ -21,39 +18,27 @@ class PrayerNotificationWorker @AssistedInject constructor(
     private val locationTracker: LocationTracker
 ) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result {
-        val location = locationTracker.getCurrentLocation() ?: return Result.retry()
-        
-        val prayerTimes = prayerCalculator.calculate(location.latitude, location.longitude)
-        
-        scheduleAlarm("Fajr", prayerTimes.fajr.time)
-        scheduleAlarm("Dhuhr", prayerTimes.dhuhr.time)
-        scheduleAlarm("Asr", prayerTimes.asr.time)
-        scheduleAlarm("Maghrib", prayerTimes.maghrib.time)
-        scheduleAlarm("Isha", prayerTimes.isha.time)
-
-        return Result.success()
+    companion object {
+        private const val FALLBACK_LAT = 30.0444
+        private const val FALLBACK_LNG = 31.2357
     }
 
-    private fun scheduleAlarm(prayerName: String, triggerAtMillis: Long) {
-        if (triggerAtMillis < System.currentTimeMillis()) return
+    override suspend fun doWork(): Result {
+        return try {
+            val location = try {
+                withTimeout(10_000) { locationTracker.getCurrentLocation() }
+            } catch (_: Exception) {
+                null
+            }
+            val lat = location?.latitude ?: FALLBACK_LAT
+            val lng = location?.longitude ?: FALLBACK_LNG
 
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, PrayerNotificationReceiver::class.java).apply {
-            putExtra("PRAYER_NAME", prayerName)
+            val prayerTimes = prayerCalculator.calculate(lat, lng)
+            AlarmScheduler.scheduleAll(applicationContext, prayerTimes)
+            Result.success()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.retry()
         }
-        
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            prayerName.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerAtMillis,
-            pendingIntent
-        )
     }
 }
